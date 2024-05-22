@@ -6,6 +6,9 @@
 ## Hope this code or this solution will help you a lot. 
 ### Let's be friends ? [LinkedIn](https://www.linkedin.com/in/noushedahmedjholok) [Facebook](https://www.facebook.com/NoushedAhmedJholok)
 
+![image](https://github.com/NoushedAhmedJholok/multi_image_upload/assets/80415299/f3d95fb2-03ea-4c20-a9df-0571a68b0011)
+
+
 ## Here I will show how to upload multi image/file. And it will be saved in local file image and database with this name.
 
 
