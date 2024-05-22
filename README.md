@@ -3,6 +3,9 @@
 
 
 # Multi Image/File Upload In Laravel 
+## Hope this code or this solution will help you a lot. 
+### Let's be friends ? [LinkedIn](https://www.linkedin.com/in/noushedahmedjholok) [Facebook](https://www.facebook.com/NoushedAhmedJholok)
+
 ## Here I will show how to upload multi image/file. And it will be saved in local file image and database with this name.
 
 
@@ -118,7 +121,8 @@ Schema::create('products', function (Blueprint $table) {
             $table->timestamps();
 });
 ```
-
+## Hope this code or this solution will help you a lot. 
+### Let's be friends ? [LinkedIn](https://www.linkedin.com/in/noushedahmedjholok) [Facebook](https://www.facebook.com/NoushedAhmedJholok)
 
 
 
