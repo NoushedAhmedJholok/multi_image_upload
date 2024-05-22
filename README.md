@@ -6,58 +6,122 @@
 ## Here I will show how to upload multi image/file. And it will be saved in local file image and database with this name.
 
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## First you need to create a Laravel project.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### This is form (Blade or HTML).
+```language
+ 
+<form action="{{route('insert')}}" method="post" enctype="multipart/form-data">
+    @csrf
+    <label for="product" style="font-size:24px">Products Name</label>
+    <input type="text" name="products_name" id="product" placeholder="Here Enter Product Name">
+          <label class="upload__btn">
+            <p>Upload images</p>
+            <input type="file" name="images[]" multiple data-max_length="20" class="upload__inputfile">
+          </label>
+   <p><button type="submit" style="background: transparent; border: none;color:#000;">Upload Submit</button></p>
+</form>
+```
+### This is Controller ( Code ).
+```language
+public function insert(Request $request)
+{
+    // Validate the request
+    $request->validate([
+        'products_name' => 'required|string|max:255',
+        'images' => 'required|array',
+        'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048', // Adjust validation rules as needed
+    ]);
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+    // Insert the product and get its ID
+    $getinsertId = Product::insertGetId([
+        'product_name' => $request->products_name,
+        'product_id' => 10, // Replace with actual logic for product_id if needed
+    ]);
 
-## Learning Laravel
+    // Ensure the directory exists
+    $uploadPath = public_path('uploads/images');
+    if (!file_exists($uploadPath)) {
+        mkdir($uploadPath, 0755, true);
+    }
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+    // Loop through each uploaded image
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $index => $image) {
+            // Create a unique name for the image
+            $imageName = $getinsertId . '_' . $index . '.' . $image->getClientOriginalExtension();
+            
+            // Move the image to the public/uploads/images directory
+            $image->move($uploadPath, $imageName);
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+            // Insert the image information into the Images table
+            Images::insert([
+                'product_id' => $getinsertId,
+                'images' => $imageName,
+            ]);
+        }
+    }
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    return back()->with('success', 'Product and images uploaded successfully.');
+}
 
-## Laravel Sponsors
+}
+```
+### Route web.php
+```language
+Route::post('/home/insert', [App\Http\Controllers\HomeController::class, 'insert'])->name('insert');
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### You need to create 2 models. All the details will be inserted in one of them. Another image will be inserted.
 
-### Premium Partners
+### If went to show data ( i only show last 'id' data ) 
+```language
+                <h3 class="text-info bg-dark p-1">Show Only Last Product Name</h3>
+            </div>
+            @foreach ($products as $item)
+                <h3>{{$item->product_name}}</h3>
+            @endforeach
+        </div>
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+            <div class="show_img">
+                <h3 class="text-info bg-dark p-1">Show Only Last Product Images</h3>
+            </div>
+            
+            @foreach ($images as $item)
+                <img width="50px" src="{{asset('uploads/images/')}}/{{$item->images}}" alt="hgh">
+            @endforeach
+```
+### Sent from the controller like this ( show data ) 
+```language
+        $products_idd = Product::latest()->value('id');
+        $products = Product::orderBy('id', 'desc')->latest()->limit(1)->get();
+        $images = Images::where('product_id' , $products_idd)->get();
+        return view('home', compact('products', 'images'));
+```
 
-## Contributing
+### two Models Name And Table 
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```language
+Model Name is Images 
+Schema::create('images', function (Blueprint $table) {
+            $table->id();
+            $table->String('product_id');
+            $table->String('images');
+            $table->timestamps();
+});
 
-## Code of Conduct
+Model Name is Products
+Schema::create('products', function (Blueprint $table) {
+            $table->id();
+            $table->String('product_name');
+            $table->String('product_id');
+            $table->timestamps();
+});
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-## Security Vulnerabilities
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+
